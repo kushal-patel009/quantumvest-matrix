@@ -16,6 +16,16 @@ export async function signUp(email: string, password: string) {
   if (error) throw new Error(error.message);
 }
 
+export async function requestPasswordReset(email: string, redirectTo: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) throw new Error(error.message);
+}
+
+export async function updatePassword(newPassword: string) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw new Error(error.message);
+}
+
 export async function signOut() {
   await supabase.auth.signOut();
 }
