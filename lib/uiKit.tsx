@@ -1,19 +1,11 @@
 "use client";
 
 import React from "react";
+import { useTheme, Palette, DARK_COLORS } from "./theme";
 
-export const COLORS = {
-  bg: "#0B0F17",
-  panel: "#131826",
-  panelAlt: "#182036",
-  border: "#232B40",
-  text: "#E7EAF3",
-  textMuted: "#8A93AB",
-  accent: "#4F8CFF",
-  good: "#3FD68E",
-  bad: "#F2564C",
-  warn: "#F2B84B",
-};
+// Kept as a static export for any legacy/non-React usage; prefer
+// useTheme().colors inside components so light/dark actually switches.
+export const COLORS = DARK_COLORS;
 
 export const mono = { fontFamily: "'JetBrains Mono', monospace" };
 export const display = { fontFamily: "'Space Grotesk', sans-serif" };
@@ -31,13 +23,14 @@ export function Panel({
   children: React.ReactNode;
   className?: string;
 }) {
+  const { colors } = useTheme();
   return (
-    <div className={`rounded-xl border border-[#232B40] bg-[#131826] p-5 ${className}`}>
+    <div className={`rounded-xl border p-5 ${className}`} style={{ borderColor: colors.border, backgroundColor: colors.panel }}>
       {(title || eyebrow || actions) && (
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            {eyebrow && <div className="text-[11px] font-semibold uppercase tracking-widest text-[#4F8CFF]">{eyebrow}</div>}
-            {title && <h2 className="text-lg font-semibold" style={display}>{title}</h2>}
+            {eyebrow && <div className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: colors.accent }}>{eyebrow}</div>}
+            {title && <h2 className="text-lg font-semibold" style={{ ...display, color: colors.text }}>{title}</h2>}
           </div>
           {actions}
         </div>
@@ -48,7 +41,8 @@ export function Panel({
 }
 
 export function Pill({ tone = "default", children }: { tone?: "default" | "good" | "bad" | "warn"; children: React.ReactNode }) {
-  const color = { default: COLORS.textMuted, good: COLORS.good, bad: COLORS.bad, warn: COLORS.warn }[tone];
+  const { colors } = useTheme();
+  const color = { default: colors.textMuted, good: colors.good, bad: colors.bad, warn: colors.warn }[tone];
   return (
     <span
       className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
@@ -59,8 +53,16 @@ export function Pill({ tone = "default", children }: { tone?: "default" | "good"
   );
 }
 
-export const inputCls =
-  "rounded-md border border-[#232B40] bg-[#0B0F17] px-2.5 py-1.5 text-sm text-[#E7EAF3] outline-none transition-colors focus:border-[#4F8CFF]";
+/** Structural-only classes (no color) — pair with inputStyle(colors) for the theme-driven look. */
+export const inputCls = "rounded-md px-2.5 py-1.5 text-sm outline-none transition-colors";
+
+export function inputStyle(colors: Palette): React.CSSProperties {
+  return {
+    backgroundColor: colors.bg,
+    border: `1px solid ${colors.border}`,
+    color: colors.text,
+  };
+}
 
 export function signalTone(signal: string): "good" | "bad" | "default" {
   if (signal === "BUY") return "good";
@@ -68,15 +70,15 @@ export function signalTone(signal: string): "good" | "bad" | "default" {
   return "default";
 }
 
-export function gainColor(pct: number | null): string {
-  if (pct === null) return COLORS.textMuted;
+export function gainColor(pct: number | null, colors: Palette): string {
+  if (pct === null) return colors.textMuted;
   if (pct >= 10) return "#00A651";
   if (pct >= 5) return "#3FD68E";
   if (pct >= 2) return "#8CE8B8";
   if (pct <= -10) return "#B30000";
   if (pct <= -5) return "#E85C4A";
   if (pct <= -2) return "#F2A79C";
-  return COLORS.text;
+  return colors.text;
 }
 
 export function fmtPct(pct: number | null): string {

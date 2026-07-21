@@ -7,13 +7,15 @@ import { getCurrentProfile, signOut, Profile } from "../lib/auth";
 import { fetchTickers, addTicker, updateTicker, deleteTicker, bulkUpsertTickers } from "../lib/tickersApi";
 import type { Ticker, TabKey, Quote } from "../lib/types";
 import { TAB_LABELS, TAB_ORDER } from "../lib/types";
-import { COLORS, display, mono, Panel, Pill, inputCls, signalTone, gainColor, fmtPct, fmtPrice } from "../lib/uiKit";
+import { useTheme } from "../lib/theme";
+import { display, mono, Panel, Pill, inputCls, inputStyle, signalTone, gainColor, fmtPct, fmtPrice } from "../lib/uiKit";
 
 function emptyDraft(tab: TabKey): Omit<Ticker, "id"> {
   return { tab, segment: tab === "quantum" ? "UNSORTED" : null, symbol: "", name: "", stopLoss: null, target: null };
 }
 
 export default function QuantumVestMatrix() {
+  const { colors: COLORS, mode, toggleTheme } = useTheme();
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null | undefined>(undefined); // undefined = still checking
   const [activeTab, setActiveTab] = useState<TabKey>("quantum");
@@ -259,16 +261,26 @@ export default function QuantumVestMatrix() {
               Signed in as {profile.email} · <span style={{ color: isAdmin ? COLORS.good : COLORS.textMuted }}>{isAdmin ? "Admin" : "Viewer"}</span>
             </p>
           </div>
-          <button
-            onClick={async () => {
-              await signOut();
-              router.push("/login");
-            }}
-            className="self-start rounded-lg border px-4 py-2 text-sm"
-            style={{ borderColor: COLORS.border, color: COLORS.textMuted }}
-          >
-            Sign out
-          </button>
+          <div className="flex items-center gap-2 self-start">
+            <button
+              onClick={toggleTheme}
+              className="rounded-lg border px-4 py-2 text-sm"
+              style={{ borderColor: COLORS.border, color: COLORS.textMuted }}
+              title={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {mode === "dark" ? "☀️ Light" : "🌙 Dark"}
+            </button>
+            <button
+              onClick={async () => {
+                await signOut();
+                router.push("/login");
+              }}
+              className="rounded-lg border px-4 py-2 text-sm"
+              style={{ borderColor: COLORS.border, color: COLORS.textMuted }}
+            >
+              Sign out
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -324,15 +336,15 @@ export default function QuantumVestMatrix() {
             {adding && (
               <div className="mt-4 rounded-lg border p-4" style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg }}>
                 <div className="mb-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-                  <input placeholder="Symbol" className={inputCls} value={addDraft.symbol} onChange={(e) => setAddDraft({ ...addDraft, symbol: e.target.value })} />
-                  <input placeholder="Name" className={inputCls} value={addDraft.name} onChange={(e) => setAddDraft({ ...addDraft, name: e.target.value })} />
+                  <input placeholder="Symbol" className={inputCls} style={inputStyle(COLORS)} value={addDraft.symbol} onChange={(e) => setAddDraft({ ...addDraft, symbol: e.target.value })} />
+                  <input placeholder="Name" className={inputCls} style={inputStyle(COLORS)} value={addDraft.name} onChange={(e) => setAddDraft({ ...addDraft, name: e.target.value })} />
                   {activeTab === "quantum" && (
-                    <input placeholder="Segment" className={inputCls} value={addDraft.segment ?? ""} onChange={(e) => setAddDraft({ ...addDraft, segment: e.target.value })} />
+                    <input placeholder="Segment" className={inputCls} style={inputStyle(COLORS)} value={addDraft.segment ?? ""} onChange={(e) => setAddDraft({ ...addDraft, segment: e.target.value })} />
                   )}
                   {showStopTarget && (
                     <>
-                      <input type="number" step={0.01} placeholder="Stop Loss" className={inputCls} value={addDraft.stopLoss ?? ""} onChange={(e) => setAddDraft({ ...addDraft, stopLoss: e.target.value === "" ? null : parseFloat(e.target.value) })} />
-                      <input type="number" step={0.01} placeholder="Target" className={inputCls} value={addDraft.target ?? ""} onChange={(e) => setAddDraft({ ...addDraft, target: e.target.value === "" ? null : parseFloat(e.target.value) })} />
+                      <input type="number" step={0.01} placeholder="Stop Loss" className={inputCls} style={inputStyle(COLORS)} value={addDraft.stopLoss ?? ""} onChange={(e) => setAddDraft({ ...addDraft, stopLoss: e.target.value === "" ? null : parseFloat(e.target.value) })} />
+                      <input type="number" step={0.01} placeholder="Target" className={inputCls} style={inputStyle(COLORS)} value={addDraft.target ?? ""} onChange={(e) => setAddDraft({ ...addDraft, target: e.target.value === "" ? null : parseFloat(e.target.value) })} />
                     </>
                   )}
                 </div>
@@ -382,14 +394,14 @@ export default function QuantumVestMatrix() {
                         <tr key={t.id} className="border-t" style={{ borderColor: COLORS.border }}>
                           <td className="px-2 py-2 font-medium" style={mono}>
                             {editing ? (
-                              <input className={`${inputCls} w-24`} value={editDraft.symbol ?? ""} onChange={(e) => setEditDraft({ ...editDraft, symbol: e.target.value })} />
+                              <input className={`${inputCls} w-24`} style={inputStyle(COLORS)} value={editDraft.symbol ?? ""} onChange={(e) => setEditDraft({ ...editDraft, symbol: e.target.value })} />
                             ) : (
                               t.symbol
                             )}
                           </td>
                           <td className="px-2 py-2" style={{ color: COLORS.textMuted }}>
                             {editing ? (
-                              <input className={`${inputCls} w-full`} value={editDraft.name ?? ""} onChange={(e) => setEditDraft({ ...editDraft, name: e.target.value })} />
+                              <input className={`${inputCls} w-full`} style={inputStyle(COLORS)} value={editDraft.name ?? ""} onChange={(e) => setEditDraft({ ...editDraft, name: e.target.value })} />
                             ) : (
                               t.name
                             )}
@@ -397,7 +409,7 @@ export default function QuantumVestMatrix() {
                           {showStopTarget && (
                             <td className="px-2 py-2 text-right" style={mono}>
                               {editing ? (
-                                <input type="number" step={0.01} className={`${inputCls} w-24 text-right`} value={editDraft.stopLoss ?? ""} onChange={(e) => setEditDraft({ ...editDraft, stopLoss: e.target.value === "" ? null : parseFloat(e.target.value) })} />
+                                <input type="number" step={0.01} className={`${inputCls} w-24 text-right`} style={inputStyle(COLORS)} value={editDraft.stopLoss ?? ""} onChange={(e) => setEditDraft({ ...editDraft, stopLoss: e.target.value === "" ? null : parseFloat(e.target.value) })} />
                               ) : t.stopLoss !== null ? (
                                 fmtPrice(t.stopLoss)
                               ) : (
@@ -408,7 +420,7 @@ export default function QuantumVestMatrix() {
                           {showStopTarget && (
                             <td className="px-2 py-2 text-right" style={mono}>
                               {editing ? (
-                                <input type="number" step={0.01} className={`${inputCls} w-24 text-right`} value={editDraft.target ?? ""} onChange={(e) => setEditDraft({ ...editDraft, target: e.target.value === "" ? null : parseFloat(e.target.value) })} />
+                                <input type="number" step={0.01} className={`${inputCls} w-24 text-right`} style={inputStyle(COLORS)} value={editDraft.target ?? ""} onChange={(e) => setEditDraft({ ...editDraft, target: e.target.value === "" ? null : parseFloat(e.target.value) })} />
                               ) : t.target !== null ? (
                                 fmtPrice(t.target)
                               ) : (
@@ -420,9 +432,9 @@ export default function QuantumVestMatrix() {
                           <td className="px-2 py-2 text-center">{q ? <Pill tone={signalTone(q.hourlySignal)}>{q.hourlySignal}</Pill> : "…"}</td>
                           <td className="px-2 py-2 text-center">{q ? <Pill tone={signalTone(q.dailySignal)}>{q.dailySignal}</Pill> : "…"}</td>
                           <td className="px-2 py-2 text-center">{q ? <Pill tone={signalTone(q.weeklySignal)}>{q.weeklySignal}</Pill> : "…"}</td>
-                          <td className="px-2 py-2 text-right" style={{ ...mono, color: q ? gainColor(q.dailyGainPct) : COLORS.textMuted }}>{q ? fmtPct(q.dailyGainPct) : "…"}</td>
-                          <td className="px-2 py-2 text-right" style={{ ...mono, color: q ? gainColor(q.weeklyGainPct) : COLORS.textMuted }}>{q ? fmtPct(q.weeklyGainPct) : "…"}</td>
-                          <td className="px-2 py-2 text-right" style={{ ...mono, color: q ? gainColor(q.monthlyGainPct) : COLORS.textMuted }}>{q ? fmtPct(q.monthlyGainPct) : "…"}</td>
+                          <td className="px-2 py-2 text-right" style={{ ...mono, color: q ? gainColor(q.dailyGainPct, COLORS) : COLORS.textMuted }}>{q ? fmtPct(q.dailyGainPct) : "…"}</td>
+                          <td className="px-2 py-2 text-right" style={{ ...mono, color: q ? gainColor(q.weeklyGainPct, COLORS) : COLORS.textMuted }}>{q ? fmtPct(q.weeklyGainPct) : "…"}</td>
+                          <td className="px-2 py-2 text-right" style={{ ...mono, color: q ? gainColor(q.monthlyGainPct, COLORS) : COLORS.textMuted }}>{q ? fmtPct(q.monthlyGainPct) : "…"}</td>
                           {isAdmin && (
                             <td className="px-2 py-2 text-right">
                               {editing ? (

@@ -3,10 +3,12 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, signUp, requestPasswordReset } from "../../lib/auth";
-import { COLORS, display, inputCls } from "../../lib/uiKit";
+import { useTheme } from "../../lib/theme";
+import { display, inputCls, inputStyle } from "../../lib/uiKit";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { colors: COLORS, mode: themeMode, toggleTheme } = useTheme();
   const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,8 +42,18 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4" style={{ backgroundColor: COLORS.bg }}>
       <div className="w-full max-w-sm rounded-xl border p-6" style={{ borderColor: COLORS.border, backgroundColor: COLORS.panel }}>
-        <div className="mb-1 text-[11px] font-semibold uppercase tracking-widest" style={{ color: COLORS.accent }}>
-          Quantumvest
+        <div className="mb-1 flex items-center justify-between">
+          <div className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: COLORS.accent }}>
+            Quantumvest
+          </div>
+          <button
+            onClick={toggleTheme}
+            className="rounded-md border px-2 py-1 text-xs"
+            style={{ borderColor: COLORS.border, color: COLORS.textMuted }}
+            title={themeMode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {themeMode === "dark" ? "☀️" : "🌙"}
+          </button>
         </div>
         <h1 className="mb-6 text-2xl font-bold" style={{ ...display, color: COLORS.text }}>
           {mode === "login" ? "Sign in" : mode === "signup" ? "Create account" : "Reset password"}
@@ -72,12 +84,12 @@ export default function LoginPage() {
           <form onSubmit={submit} className="flex flex-col gap-3">
             <label className="block">
               <span className="mb-1 block text-xs font-medium" style={{ color: COLORS.textMuted }}>Email</span>
-              <input type="email" required className={`${inputCls} w-full`} value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input type="email" required className={`${inputCls} w-full`} style={inputStyle(COLORS)} value={email} onChange={(e) => setEmail(e.target.value)} />
             </label>
             {mode !== "forgot" && (
               <label className="block">
                 <span className="mb-1 block text-xs font-medium" style={{ color: COLORS.textMuted }}>Password</span>
-                <input type="password" required minLength={6} className={`${inputCls} w-full`} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input type="password" required minLength={6} className={`${inputCls} w-full`} style={inputStyle(COLORS)} value={password} onChange={(e) => setPassword(e.target.value)} />
               </label>
             )}
 
